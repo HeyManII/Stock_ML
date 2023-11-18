@@ -4,3 +4,5 @@
 2.py main.py
 
 #strategy
+RSI >=70 >> sell
+RSI <=30 >> buy

@@ -2,12 +2,14 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import math
 
 SHORT_SMA_DAY = 20
 LONG_SMA = 100
 RSI_DAY=14
 RSI_SELL_INDEX=70
 RSI_BUY_INDEX=30
+INITIAL_AMOUNT_STOCK = 1
 def getStockData(stockNumber,startTime,endTime):
     print("stock number ",stockNumber)
     filePath = "./"+stockNumber+".csv"
@@ -20,6 +22,8 @@ def getStockData(stockNumber,startTime,endTime):
         stockData = yf.download(stockNumber+".HK", start=startTime, end=endTime)
         stockData.to_csv(filePath, index=False)
     return stockData
+
+
 
 def calculateSmaInStockData(originStockData,day,referenceColumnName):
     newStockData =originStockData
@@ -38,12 +42,96 @@ def createRsiInStockData(originStockData,day):
     newStockData["RSI"] = rsi
     return newStockData
 
+def calculateRsiStrategy(originStockData):
+    initialBuyDone=False
+    buyCount = 0
+    sellCount = 0
+    currentProfile = 0
+    numberOfStockHold = 0
+    for index, row in originStockData.iterrows():
+        if math.isnan(row["RSI"]):
+            a=1
+        else:
+            previousValue = originStockData.loc[index-1,"RSI"]
+            currentValue = row["RSI"]
+            if(math.isnan(previousValue)):
+                if(currentValue<=RSI_BUY_INDEX):
+                    buyCount+=1
+                    currentProfile = currentProfile - row['Close']
+                    numberOfStockHold = numberOfStockHold+1
+                    initialBuyDone=True
+                elif(currentValue >=RSI_SELL_INDEX):
+                    # sell stock
+                    buyCount = buyCount-1
+                    currentProfile = currentProfile + row['Close']
+                    numberOfStockHold = numberOfStockHold-1
+                    initialBuyDone=True
+            elif(currentValue >=RSI_SELL_INDEX):
+                if(previousValue >=RSI_SELL_INDEX):
+                    a=1
+                else:
+                    # sell stock
+                    buyCount = buyCount-1
+                    currentProfile = currentProfile + row['Close']
+                    numberOfStockHold = numberOfStockHold-1
+                    initialBuyDone=True
+            elif(currentValue <=RSI_BUY_INDEX):
+                if(previousValue <=RSI_BUY_INDEX):
+                    a=1
+                else:
+                    # buy stock
+                    sellCount+=1
+                    currentProfile = currentProfile - row['Close']
+                    numberOfStockHold = numberOfStockHold+1   
+        originStockData.loc[index,"Current Amount RSI"]= currentProfile
+        originStockData.loc[index,"Current Stock Hold RSI"]= numberOfStockHold
+    return originStockData
+
+def calculateSmaStrategy(originStockData,shorterSma,longerSma):
+    initialBuyDone=False
+    buyCount = 0
+    sellCount = 0
+    currentProfile = 0
+    numberOfStockHold = 0
+    for index, row in originStockData.iterrows():
+        if math.isnan(row[longerSma]):
+            a=1
+        else:
+            #shortMa > longMa >> buy
+            #longMa > shortMa >> sell
+            row[shorterSma]
+            row[longerSma]
+            previousShort = originStockData.loc[index-1,shorterSma]
+            previousLong = originStockData.loc[index-1,longerSma]
+            if((row[shorterSma] - row[longerSma]) >0):
+                if((previousShort - previousLong)>0):
+                    a=1
+                else:
+                    #buy stock
+                    sellCount+=1
+                    currentProfile = currentProfile - row['Close']
+                    numberOfStockHold = numberOfStockHold+1   
+            elif((row[longerSma] - row[shorterSma]) >0):
+                if((previousLong - previousShort)>0):
+                    a=1
+                else:
+                    #sell stock
+                    buyCount = buyCount-1
+                    currentProfile = currentProfile + row['Close']
+                    numberOfStockHold = numberOfStockHold-1  
+        originStockData.loc[index,"Current Amount SMA"]= currentProfile
+        originStockData.loc[index,"Current Stock Hold SMA"]= numberOfStockHold
+    return originStockData
+
 def generateParticularStockDataWithDiagram(stockNumber,startTime,endTime):
     taItems = ["SMA","RSI"]
     stockData = getStockData(stockNumber,startTime,endTime)
     stockData = calculateSmaInStockData(stockData,SHORT_SMA_DAY,"Close")
     stockData = calculateSmaInStockData(stockData,LONG_SMA,"Close")
     stockData = createRsiInStockData(stockData,RSI_DAY)
+    stockData = calculateRsiStrategy(stockData)
+    stockData = calculateSmaStrategy(stockData,"SMA"+str(SHORT_SMA_DAY),"SMA"+str(LONG_SMA))
+    stockData.to_csv("./"+stockNumber+"_calculated"+".csv", index=False)
     row = len(taItems)
     column = 1
     fig, ax = plt.subplots(row, column, figsize=(10, 10), sharex=True)
@@ -76,7 +164,7 @@ main()
 # # step1 pick stock number
 
 # # step2 create csv file 
-
+####################################################### original code
 # if os.path.isfile("./2800.csv"):
 #     hk_stock_2800 = pd.read_csv("./2800.csv")
 # else:
