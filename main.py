@@ -172,6 +172,7 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
 def findBuySignal(stockData):
     # initial the array to store buy in signal date and price
     buySignal = []
+    # if SMA20 cross SMA100 from below to above && RSI < 70, BUY
     for index, row in stockData.iterrows():
         if row["SMA20"] >= row["SMA100"]:
             prev_row = stockData.iloc[index - 1]
@@ -184,6 +185,7 @@ def findSellSignal(stockData):
     # initial the array to store buy in signal date and price
     sellSignal = []
     for index, row in stockData.iterrows():
+        # if SMA20 cross SMA100 from above to below, SELL
         if row["SMA20"] <= row["SMA100"]:
             prev_row = stockData.iloc[index - 1]
             if prev_row["SMA20"] > prev_row["SMA100"]:

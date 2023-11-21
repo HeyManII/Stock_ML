@@ -1,8 +1,15 @@
 # Step 0: Install Library
 
-1.pip install yfinance matplotlib pandas
-2.py main.py
+> pip install yfinance matplotlib panda
 
-#strategy
+# Step 1: start main
+
+> py main.py
+
+# Strategy
+
 RSI >=70 >> sell
+SMA20 < SMA100 >> sell
+
 RSI <=30 >> buy
+SMA20 > SMA100 >> buy
