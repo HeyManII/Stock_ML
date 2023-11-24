@@ -85,10 +85,10 @@ if __name__ == "__main__":
     HSC_df = dataCleaning(HSC_df)
     HSF_df = dataCleaning(HSF_df)
 
-    HSP_df["Return"] = (HSP_df["Close"] - HSP_df["Close"].shift(365)) * HSP_share
-    HSU_df["Return"] = (HSU_df["Close"] - HSU_df["Close"].shift(365)) * HSU_share
-    HSC_df["Return"] = (HSC_df["Close"] - HSC_df["Close"].shift(365)) * HSC_share
-    HSF_df["Return"] = (HSF_df["Close"] - HSF_df["Close"].shift(365)) * HSF_share
+    HSP_df["Return"] = (HSP_df["Close"] - HSP_df["Close"].shift(5)) * HSP_share
+    HSU_df["Return"] = (HSU_df["Close"] - HSU_df["Close"].shift(5)) * HSU_share
+    HSC_df["Return"] = (HSC_df["Close"] - HSC_df["Close"].shift(5)) * HSC_share
+    HSF_df["Return"] = (HSF_df["Close"] - HSF_df["Close"].shift(5)) * HSF_share
 
     HSP_expected_return, HSP_variance, HSP_std = stockInfoCalculate(HSP_df)
     HSU_expected_return, HSU_variance, HSU_std = stockInfoCalculate(HSU_df)
@@ -110,7 +110,6 @@ if __name__ == "__main__":
                 w4 = 100 - w1 - w2 - w3
                 if w4 >= 10:
                     possible_values.append((w1, w2, w3, w4))
-    print(possible_values)
 
     expected_return_values = []
     std_values = []
@@ -144,7 +143,6 @@ if __name__ == "__main__":
         df2 = pd.concat([df2, df_temp], ignore_index=True)
     df2.dropna(inplace=True)
     df2.reset_index(drop=True, inplace=True)
-    print(df2)
 
     # Plot the graph
     plt.plot(std_values, expected_return_values)
