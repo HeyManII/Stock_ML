@@ -1,15 +1,28 @@
-# Step 0: Install Library
+## Step 0: Install Library
 
-> pip install yfinance matplotlib panda
+> pip install yfinance matplotlib panda scikit-learn
 
-# Step 1: start main
+## Step 1: Setting a portfolio
+
+The file "Porfolio.py" chooses the 4 stocks with highest masket cap in 4 HSI sectors respectively.
+By Runningf the code,
+
+> py Portfolio.py
+> it shows whick 4 stocks are chosen and calculate the optimal weighting of the 4 stocks in the portofolio.
+> The portfolio is set to be the most conservative. (with the lowest std)
+
+## Step 2: start main
 
 > py main.py
 
 # Strategy
 
-RSI >=70 >> sell
-SMA20 < SMA100 >> sell
+Sell:
 
-RSI <=30 >> buy
-SMA20 > SMA100 >> buy
+- RSI >=70
+- SMA20 < SMA100
+
+Buy:
+
+- RSI <=30
+- SMA20 > SMA100
