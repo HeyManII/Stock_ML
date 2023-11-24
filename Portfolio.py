@@ -19,15 +19,15 @@ def value_to_float(x):
 
 
 def getStockData(stockNumber, startTime, endTime):
-    # print("stock number ", stockNumber)
+    print("stock number ", stockNumber)
     filePath = "./p" + stockNumber + ".csv"
     stockData = None
     if os.path.isfile(filePath):
         stockData = pd.read_csv(filePath)
     else:
         # Download QQQ data from 2010 to 2022
-        print("downloading data")
         stockData = yf.download(stockNumber + ".HK", start=startTime, end=endTime)
+        stockData.reset_index(inplace=True)
         stockData.to_csv(filePath, index=False)
     return stockData
 
