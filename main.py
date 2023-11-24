@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import math
+from backTest import doBackTest, tradeTrigger
 
 SHORT_SMA_DAY = 20
 LONG_SMA = 100
@@ -15,17 +16,8 @@ INITIAL_AMOUNT_STOCK = 1
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
     filePath = "./" + stockNumber + ".csv"
-    stockData = None
-    if os.path.isfile(filePath):
-        stockData = pd.read_csv(filePath)
-    else:
-        # Download QQQ data from 2010 to 2022
-        print("downloading data")
-        stockData = yf.download(stockNumber+".HK", start=startTime, end=endTime)
-        stockData.to_csv(filePath, index=True)
-    stockData.set_index()
+    stockData = pd.read_csv(filePath)
     return stockData
-
 
 def calculateSmaInStockData(originStockData, day, referenceColumnName):
     newStockData = originStockData
@@ -49,15 +41,15 @@ def createRsiInStockData(originStockData, day):
 
 
 def calculateRsiStrategy(originStockData):
+    # row["Date"]
     initialBuyDone = False
     buyCount = 0
     sellCount = 0
     currentProfile = 0
     numberOfStockHold = 0
-    buyFlag = False
-    sellFlag = False
     for index, row in originStockData.iterrows():
-        print(index)
+        buyFlag = False
+        sellFlag = False
         if math.isnan(row["RSI"]):
             a = 1
         else:
@@ -107,14 +99,10 @@ def calculateSmaStrategy(originStockData, shorterSma, longerSma):
     sellCount = 0
     currentProfile = 0
     numberOfStockHold = 0
-    buyFlag = False
-    sellFlag = False
     # for index, row in enumerate(originStockData.iterrows()):
     for index, row in originStockData.iterrows():
-    # originStockData.iterrows():
-        print(" index ", index)
-        print(" sma strategy ",row)
-        print(" sma open strategy ",row["Open"])
+        buyFlag = False
+        sellFlag = False
         if math.isnan(row[longerSma]):
             a = 1
         else:
@@ -155,7 +143,9 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     stockData = createRsiInStockData(stockData, RSI_DAY)
     stockData = calculateRsiStrategy(stockData)
     stockData = calculateSmaStrategy(stockData,"SMA"+str(SHORT_SMA_DAY),"SMA"+str(LONG_SMA))
-    stockData.to_csv("./"+stockNumber+"_calculated"+".csv", index=True)
+    tradeTrigger(stockNumber,stockData)
+    # stockData.to_csv("./"+stockNumber+"_calculated"+".csv", index=True)
+    
     # row = len(taItems)
     # column = 1
     # fig, ax = plt.subplots(row, column, figsize=(10, 10), sharex=True)
@@ -244,13 +234,13 @@ def trade(capital, buySignal, sellSignal):
             amountToBuy = math.floor((cash / (row[2] * 100)))
             stockAmount = stockAmount + amountToBuy * 100
             cash = cash - row[2] * amountToBuy * 100
-            print(f"Bought {amountToBuy*100} shares at {row[2]} per share")
-            print(f"Cash left:{cash}")
+            # print(f"Bought {amountToBuy*100} shares at {row[2]} per share")
+            # print(f"Cash left:{cash}")
         if row[1] == "Sell":
-            print(f"Sell {stockAmount} shares at {row[2]} per share")
+            # print(f"Sell {stockAmount} shares at {row[2]} per share")
             cash = cash + row[2] * stockAmount
             stockAmount = 0
-            print(f"Cash left:{cash}")
+            # print(f"Cash left:{cash}")
     return cash, stockAmount
 
 
@@ -259,14 +249,14 @@ def main():
     endTime = "2023-05-31"
     generateParticularStockDataWithDiagram("2800", startTime, endTime)
     generateParticularStockDataWithDiagram("0700", startTime, endTime)
-    stock_700 = pd.read_csv("./0700_calculated.csv")
-    buySignal = findBuySignal(stock_700)
-    sellSignal = findSellSignal(stock_700)
+    # stock_700 = pd.read_csv("./0700_calculated.csv")
+    # buySignal = findBuySignal(stock_700)
+    # sellSignal = findSellSignal(stock_700)
 
-    capital = 100000
-    cash, stockAmount = trade(capital, buySignal, sellSignal)
-    print("cash:", cash)
-    print("stockAmount:", stockAmount)
+    # capital = 100000
+    # cash, stockAmount = trade(capital, buySignal, sellSignal)
+    # print("cash:", cash)
+    # print("stockAmount:", stockAmount)
 
 
 if __name__ == "__main__":
