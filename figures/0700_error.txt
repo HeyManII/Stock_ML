@@ -1,0 +1,1 @@
+Error of BILSTM regression model: 20.36488796694766
