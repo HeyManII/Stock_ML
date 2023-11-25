@@ -165,36 +165,36 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     #         ax[index].legend()
     
     # plt.show()
-    stockData = calculateSmaStrategy(
-        stockData, "SMA" + str(SHORT_SMA_DAY), "SMA" + str(LONG_SMA)
-    )
-    stockData.to_csv("./" + stockNumber + "_calculated" + ".csv", index=False)
-    row = len(taItems)
-    column = 1
-    fig, ax = plt.subplots(row, column, figsize=(10, 10), sharex=True)
-    for index, taItem in enumerate(taItems):
-        if taItem == "SMA":
-            ax[index].plot(stockData["Close"], color="green", label="Close")
-            ax[index].plot(
-                stockData["SMA" + str(SHORT_SMA_DAY)],
-                color="blue",
-                label="SMA" + str(SHORT_SMA_DAY),
-            )
-            ax[index].plot(
-                stockData["SMA" + str(LONG_SMA)],
-                color="orange",
-                label="SMA" + str(LONG_SMA),
-            )
-            ax[index].set_title(stockNumber + " open price")
-            ax[index].legend()
-        elif taItem == "RSI":
-            ax[index].plot(stockData["RSI"], color="green", label="RSI")
-            ax[index].axhline(y=RSI_BUY_INDEX, color="red", linestyle="--")
-            ax[index].axhline(y=RSI_SELL_INDEX, color="red", linestyle="--")
-            ax[index].set_title(stockNumber + " RSI")
-            ax[index].legend()
+    # stockData = calculateSmaStrategy(
+    #     stockData, "SMA" + str(SHORT_SMA_DAY), "SMA" + str(LONG_SMA)
+    # )
+    # stockData.to_csv("./" + stockNumber + "_calculated" + ".csv", index=False)
+    # row = len(taItems)
+    # column = 1
+    # fig, ax = plt.subplots(row, column, figsize=(10, 10), sharex=True)
+    # for index, taItem in enumerate(taItems):
+    #     if taItem == "SMA":
+    #         ax[index].plot(stockData["Close"], color="green", label="Close")
+    #         ax[index].plot(
+    #             stockData["SMA" + str(SHORT_SMA_DAY)],
+    #             color="blue",
+    #             label="SMA" + str(SHORT_SMA_DAY),
+    #         )
+    #         ax[index].plot(
+    #             stockData["SMA" + str(LONG_SMA)],
+    #             color="orange",
+    #             label="SMA" + str(LONG_SMA),
+    #         )
+    #         ax[index].set_title(stockNumber + " open price")
+    #         ax[index].legend()
+    #     elif taItem == "RSI":
+    #         ax[index].plot(stockData["RSI"], color="green", label="RSI")
+    #         ax[index].axhline(y=RSI_BUY_INDEX, color="red", linestyle="--")
+    #         ax[index].axhline(y=RSI_SELL_INDEX, color="red", linestyle="--")
+    #         ax[index].set_title(stockNumber + " RSI")
+    #         ax[index].legend()
 
-    plt.show()
+    # plt.show()
 
 
 def findBuySignal(stockData):
