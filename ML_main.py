@@ -189,9 +189,25 @@ if __name__ == "__main__":
     test_stock3 = stock3[stock1["Date"] >= "2022-11-01"]
     test_stock4 = stock4[stock1["Date"] >= "2022-11-01"]
 
-    stockname = "0016"
+    stockname = "0005"
 
-    training_stock = dataCleaning(train_stock1)
+    if stockname == "2800":
+        train_stock = train_stock0
+        test_stock = test_stock0
+    elif stockname == "0016":
+        train_stock = train_stock1
+        test_stock = test_stock1
+    elif stockname == "0002":
+        train_stock = train_stock2
+        test_stock = test_stock2
+    elif stockname == "0700":
+        train_stock = train_stock3
+        test_stock = test_stock3
+    elif stockname == "0005":
+        train_stock = train_stock4
+        test_stock = test_stock4
+
+    training_stock = dataCleaning(train_stock)
 
     # add SMA features
     training_stock["Ratio to MA10"] = (
@@ -326,7 +342,7 @@ if __name__ == "__main__":
     print(decision)
 
     # -------------------- testing --------------------
-    testing_stock = dataCleaning(test_stock1)
+    testing_stock = dataCleaning(test_stock)
 
     # add SMA features
     testing_stock["Ratio to MA10"] = (
