@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import math
 from backTest import doBackTest, tradeTrigger
+from constant import DEFAULT_STOCK_LIST
 
 SHORT_SMA_DAY = 20
 LONG_SMA = 100
@@ -15,7 +16,7 @@ INITIAL_AMOUNT_STOCK = 1
 
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
-    filePath = "./" + stockNumber + ".csv"
+    filePath = "./source_data/" + stockNumber + ".csv"
     stockData = pd.read_csv(filePath)
     return stockData
 
@@ -144,7 +145,7 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     stockData = calculateRsiStrategy(stockData)
     stockData = calculateSmaStrategy(stockData,"SMA"+str(SHORT_SMA_DAY),"SMA"+str(LONG_SMA))
     tradeTrigger(stockNumber,stockData)
-    # stockData.to_csv("./"+stockNumber+"_calculated"+".csv", index=True)
+    stockData.to_csv("./ta_data/"+stockNumber+"_calculated"+".csv", index=True)
     
     # row = len(taItems)
     # column = 1
@@ -247,8 +248,10 @@ def trade(capital, buySignal, sellSignal):
 def main():
     startTime = "2015-01-01"
     endTime = "2023-05-31"
-    generateParticularStockDataWithDiagram("2800", startTime, endTime)
-    generateParticularStockDataWithDiagram("0700", startTime, endTime)
+    for stockNumber in DEFAULT_STOCK_LIST:
+        generateParticularStockDataWithDiagram(stockNumber, startTime, endTime)
+
+
     # stock_700 = pd.read_csv("./0700_calculated.csv")
     # buySignal = findBuySignal(stock_700)
     # sellSignal = findSellSignal(stock_700)

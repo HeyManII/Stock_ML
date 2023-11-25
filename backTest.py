@@ -1,13 +1,13 @@
 import pandas as pd
 import csv
-
+from constant import DEFAULT_STOCK_LIST
 INITIAL_FUND = 25000
 
 def doBackTest(stockNumber):
     resultArr = [['Date','Cash','Number of Stock', 'Stock Price', 'Total value']]
-    filePath = "./" + stockNumber + ".csv"
+    filePath = "./source_data/" + stockNumber + ".csv"
     targetStockData = pd.read_csv(filePath)
-    filePath = "./" + stockNumber + "_trade_decision" + ".csv"
+    filePath = "./action/" + stockNumber + "_trade_decision" + ".csv"
     targetStockAction = pd.read_csv(filePath)
     cashAmount = INITIAL_FUND
     numberOfHoldingStock = 0
@@ -25,7 +25,6 @@ def doBackTest(stockNumber):
                 cashAmount = cashAmount - (numberOfStockPendingToBuy * price)
                 resultArr.append([row["Date"], cashAmount, numberOfHoldingStock,closePrice, cashAmount+numberOfHoldingStock*closePrice])
         elif(row["Action"]=="SELL"):
-            print("sell")
             if(0 >= numberOfHoldingStock):
                 #nothing do
                 a=1
@@ -35,11 +34,11 @@ def doBackTest(stockNumber):
                 cashAmount = cashAmount + soldCash
                 numberOfHoldingStock = 0
                 resultArr.append([row["Date"], cashAmount, numberOfHoldingStock, closePrice, cashAmount+numberOfHoldingStock*closePrice])
-    generateCsv(stockNumber+"_back_test.csv",resultArr)
+    generateCsv("./back_test_data/" + stockNumber + "_back_test.csv",resultArr)
 
 
-def generateCsv(fileName, data):
-    with open(fileName, 'w', newline='') as file:
+def generateCsv(filePath, data):
+    with open(filePath, 'w', newline='') as file:
         writer = csv.writer(file)
         # Write each row of data to the csv file
         for row in data:
@@ -55,11 +54,12 @@ def tradeTrigger(stockNumber , originStockData):
             tradeArr.append([row['Date'],'BUY'])
         elif((row['RSI Sell Stock Flag'] == 'True' or row['SMA Sell Stock Flag'] == 'True' )):
             tradeArr.append([row['Date'],'SELL'])  
-    generateCsv(stockNumber+"_trade_decision.csv",tradeArr)
-    doBackTest(stockNumber)  
+    generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
+    # doBackTest(stockNumber)  
 
 def main():
-    doBackTest("2800")
+    for stockNumber in DEFAULT_STOCK_LIST:
+        doBackTest(stockNumber)
 
 if __name__ == "__main__":
     main()
