@@ -14,8 +14,9 @@ The file "Porfolio.py" chooses the 4 stocks with highest masket cap in 4 HSI sec
 By Runningf the code,
 
 > py Portfolio.py
-> it shows whick 4 stocks are chosen and calculate the optimal weighting of the 4 stocks in the portofolio.
-> The portfolio is set to be the most conservative. (with the lowest std)
+
+it shows which 4 stocks are chosen and calculate the optimal weighting of the 4 stocks in the portofolio.
+The portfolio is set to be the most conservative. (with the lowest std)
 
 ## Step 1.1: First Init problem
 

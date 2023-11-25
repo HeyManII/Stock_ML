@@ -20,7 +20,7 @@ def value_to_float(x):
 
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
-    filePath = "./p" + stockNumber + ".csv"
+    filePath = "./" + stockNumber + ".csv"
     stockData = None
     if os.path.isfile(filePath):
         stockData = pd.read_csv(filePath)
@@ -73,11 +73,14 @@ if __name__ == "__main__":
     HSC_share = 100
     HSF_share = 400
 
+    startTime = "2015-01-01"
+    endTime = "2023-05-31"
+
     # Get the stock data
-    HSP_df = getStockData(HSP, "2015-11-01", "2022-10-30")
-    HSU_df = getStockData(HSU, "2015-11-01", "2022-10-30")
-    HSC_df = getStockData(HSC, "2015-11-01", "2022-10-30")
-    HSF_df = getStockData(HSF, "2015-11-01", "2022-10-30")
+    HSP_df = getStockData(HSP, startTime, endTime)
+    HSU_df = getStockData(HSU, startTime, endTime)
+    HSC_df = getStockData(HSC, startTime, endTime)
+    HSF_df = getStockData(HSF, startTime, endTime)
 
     # perform data cleaning
     HSP_df = dataCleaning(HSP_df)
