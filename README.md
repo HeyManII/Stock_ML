@@ -1,3 +1,9 @@
+default pick 
+0016.HK
+0002.HK
+0700.HK
+0005.HK
+
 ## Step 0: Install Library
 
 > pip install yfinance matplotlib panda scikit-learn
