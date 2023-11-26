@@ -2,8 +2,9 @@ import yfinance as yf
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
-from constant import DEFAULT_STOCK_LIST
-
+from constant import DEFAULT_STOCK_LIST, DATA_START_TIME, DATA_END_TIME
+INTERVAL = '1wk'
+# INTERVAL = None
 def getStockData(stockNumber, startTime, endTime, interval):
     print("stock number ", stockNumber)
     filePath = "./source_data/" + stockNumber + ".csv"
@@ -18,14 +19,12 @@ def getStockData(stockNumber, startTime, endTime, interval):
     return stockData
 
 def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
-    getStockData(stockNumber, startTime, endTime, '1wk')
+    getStockData(stockNumber, startTime, endTime, INTERVAL)
 
 
 def main():
-    startTime = "2015-01-01"
-    endTime = "2023-10-31"
     for stockNumber in DEFAULT_STOCK_LIST:
-        generateParticularStockDataWithDiagram(stockNumber, startTime, endTime)
+        generateParticularStockDataWithDiagram(stockNumber, DATA_START_TIME, DATA_END_TIME)
 
 if __name__ == "__main__":
     main()

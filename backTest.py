@@ -1,5 +1,4 @@
 import pandas as pd
-from datetime import datetime
 from utilFunction import generateCsv
 from constant import DEFAULT_STOCK_LIST
 INITIAL_FUND = 25000

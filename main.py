@@ -1,14 +1,14 @@
 import yfinance as yf
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
 import math
+from datetime import datetime
 from utilFunction import generateCsv
-from backTest import doBackTest, tradeTrigger
+from backTest import doBackTest
 from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME
 
-SHORT_SMA_DAY = 20
-LONG_SMA = 100
+SHORT_SMA_DAY = 10
+LONG_SMA = 20
 RSI_DAY = 14
 RSI_SELL_INDEX = 70
 RSI_BUY_INDEX = 30
@@ -177,9 +177,33 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
         if(startDate <= checkDate <= endDate):
             print("date", row['Date'])
             # RSI Buy Stock Flag	RSI Sell Stock Flag	SMA Buy Stock Flag	SMA Sell Stock Flag
-            if((row['RSI Buy Stock Flag'] == 'True' or row['SMA Buy Stock Flag'] == 'True' )):
+            rsiBuyStockFlag  = None
+            try:
+                rsiBuyStockFlag = row['RSI Buy Stock Flag']
+            except Exception as e:
+                rsiBuyStockFlag = 'False'
+
+            rsiSellStockFlag  = None
+            try:
+                rsiSellStockFlag = row['RSI Sell Stock Flag']
+            except Exception as e:
+                rsiSellStockFlag = 'False'
+            
+            smaBuyStockFlag  = None
+            try:
+                smaBuyStockFlag = row['SMA Buy Stock Flag']
+            except Exception as e:
+                smaBuyStockFlag = 'False'
+
+            smaSellStockFlag  = None
+            try:
+                smaSellStockFlag = row['SMA Sell Stock Flag']
+            except Exception as e:
+                smaSellStockFlag = 'False'
+
+            if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
                 tradeArr.append([row['Date'],'BUY'])
-            elif((row['RSI Sell Stock Flag'] == 'True' or row['SMA Sell Stock Flag'] == 'True' )):
+            elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
                 tradeArr.append([row['Date'],'SELL'])  
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
     # doBackTest(stockNumber)  
