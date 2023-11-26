@@ -1,14 +1,14 @@
 import yfinance as yf
 import matplotlib.pyplot as plt
 import pandas as pd
-import os
 import math
+from datetime import datetime
 from utilFunction import generateCsv
-from backTest import doBackTest, tradeTrigger
-from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME
+from backTest import doBackTest
+from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR
 
-SHORT_SMA_DAY = 20
-LONG_SMA = 100
+SHORT_SMA_DAY = 10
+LONG_SMA = 20
 RSI_DAY = 14
 RSI_SELL_INDEX = 70
 RSI_BUY_INDEX = 30
@@ -28,6 +28,10 @@ def calculateSmaInStockData(originStockData, day, referenceColumnName):
     )
     return newStockData
 
+def addStockNumberInColumn(originStockData, stockNumber):
+    newStockData = originStockData
+    newStockData["Stock Number"] = str(stockNumber)
+    return newStockData
 
 def createRsiInStockData(originStockData, day):
     newStockData = originStockData
@@ -109,6 +113,7 @@ def calculateSmaStrategy(originStockData, shorterSma, longerSma):
 def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     taItems = ["SMA", "RSI"]
     stockData = getStockData(stockNumber, startTime, endTime)
+    stockData = addStockNumberInColumn(stockData, stockNumber)
     stockData = calculateSmaInStockData(stockData, SHORT_SMA_DAY, "Close")
     stockData = calculateSmaInStockData(stockData, LONG_SMA, "Close")
     stockData = createRsiInStockData(stockData, RSI_DAY)
@@ -177,10 +182,36 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
         if(startDate <= checkDate <= endDate):
             print("date", row['Date'])
             # RSI Buy Stock Flag	RSI Sell Stock Flag	SMA Buy Stock Flag	SMA Sell Stock Flag
-            if((row['RSI Buy Stock Flag'] == 'True' or row['SMA Buy Stock Flag'] == 'True' )):
-                tradeArr.append([row['Date'],'BUY'])
-            elif((row['RSI Sell Stock Flag'] == 'True' or row['SMA Sell Stock Flag'] == 'True' )):
-                tradeArr.append([row['Date'],'SELL'])  
+            rsiBuyStockFlag  = None
+            try:
+                rsiBuyStockFlag = row['RSI Buy Stock Flag']
+            except Exception as e:
+                rsiBuyStockFlag = 'False'
+
+            rsiSellStockFlag  = None
+            try:
+                rsiSellStockFlag = row['RSI Sell Stock Flag']
+            except Exception as e:
+                rsiSellStockFlag = 'False'
+            
+            smaBuyStockFlag  = None
+            try:
+                smaBuyStockFlag = row['SMA Buy Stock Flag']
+            except Exception as e:
+                smaBuyStockFlag = 'False'
+
+            smaSellStockFlag  = None
+            try:
+                smaSellStockFlag = row['SMA Sell Stock Flag']
+            except Exception as e:
+                smaSellStockFlag = 'False'
+
+            if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
+                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')):
+                    tradeArr.append([row['Date'],'BUY'])
+            elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
+                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
+                    tradeArr.append([row['Date'],'SELL'])  
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
     # doBackTest(stockNumber)  
 
@@ -231,12 +262,13 @@ def trade(capital, buySignal, sellSignal):
             # print(f"Cash left:{cash}")
     return cash, stockAmount
 
-
 def main():
     startTime = "2015-01-01"
     endTime = "2023-05-31"
     for stockNumber in DEFAULT_STOCK_LIST:
         generateParticularStockDataWithDiagram(stockNumber, startTime, endTime)
+
+
 
 
     # stock_700 = pd.read_csv("./0700_calculated.csv")
