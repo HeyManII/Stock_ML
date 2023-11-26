@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import math
+from utilFunction import generateCsv
 from backTest import doBackTest, tradeTrigger
-from constant import DEFAULT_STOCK_LIST
+from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME
 
 SHORT_SMA_DAY = 20
 LONG_SMA = 100
@@ -43,11 +44,6 @@ def createRsiInStockData(originStockData, day):
 
 def calculateRsiStrategy(originStockData):
     # row["Date"]
-    initialBuyDone = False
-    buyCount = 0
-    sellCount = 0
-    currentProfile = 0
-    numberOfStockHold = 0
     for index, row in originStockData.iterrows():
         buyFlag = False
         sellFlag = False
@@ -59,47 +55,27 @@ def calculateRsiStrategy(originStockData):
             if(math.isnan(previousValue)):
                 if(currentValue<=RSI_BUY_INDEX):
                     buyFlag= True
-                    # buyCount+=1
-                    # currentProfile = currentProfile - row['Close']
-                    # numberOfStockHold = numberOfStockHold+1
-                    # initialBuyDone=True
                 elif(currentValue >=RSI_SELL_INDEX):
                     # sell stock
                     sellFlag= True
-                    # buyCount = buyCount-1
-                    # currentProfile = currentProfile + row['Close']
-                    # numberOfStockHold = numberOfStockHold-1
-                    # initialBuyDone=True
             elif(currentValue >=RSI_SELL_INDEX):
                 if(previousValue >=RSI_SELL_INDEX):
                     a=1
                 else:
                     # sell stock
                     sellFlag= True
-                    # buyCount = buyCount-1
-                    # currentProfile = currentProfile + row['Close']
-                    # numberOfStockHold = numberOfStockHold-1
-                    # initialBuyDone=True
             elif(currentValue <=RSI_BUY_INDEX):
                 if(previousValue <=RSI_BUY_INDEX):
                     a=1
                 else:
                     # buy stock
                     buyFlag= True
-                    # sellCount+=1
-                    # currentProfile = currentProfile - row['Close']
-                    # numberOfStockHold = numberOfStockHcurrentProfileold+1   
         originStockData.loc[index,"RSI Buy Stock Flag"]= str(buyFlag)
         originStockData.loc[index,"RSI Sell Stock Flag"]= str(sellFlag)
     return originStockData
 
 
 def calculateSmaStrategy(originStockData, shorterSma, longerSma):
-    initialBuyDone = False
-    buyCount = 0
-    sellCount = 0
-    currentProfile = 0
-    numberOfStockHold = 0
     # for index, row in enumerate(originStockData.iterrows()):
     for index, row in originStockData.iterrows():
         buyFlag = False
@@ -118,19 +94,13 @@ def calculateSmaStrategy(originStockData, shorterSma, longerSma):
                     a = 1
                 else:
                     #buy stock
-                    buyFlag = True
-                    # sellCount+=1
-                    # currentProfile = currentProfile - row['Close']
-                    # numberOfStockHold = numberOfStockHold+1   
+                    buyFlag = True 
             elif((row[longerSma] - row[shorterSma]) >0):
                 if((previousLong - previousShort)>0):
                     a=1
                 else:
                     #sell stock
                     sellFlag = True
-                    # buyCount = buyCount-1
-                    # currentProfile = currentProfile + row['Close']
-                    # numberOfStockHold = numberOfStockHold-1  
         originStockData.loc[index,"SMA Buy Stock Flag"]= str(buyFlag)
         originStockData.loc[index,"SMA Sell Stock Flag"]= str(sellFlag)
     return originStockData
@@ -144,7 +114,7 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     stockData = createRsiInStockData(stockData, RSI_DAY)
     stockData = calculateRsiStrategy(stockData)
     stockData = calculateSmaStrategy(stockData,"SMA"+str(SHORT_SMA_DAY),"SMA"+str(LONG_SMA))
-    tradeTrigger(stockNumber,stockData)
+    tradeTrigger(stockNumber,stockData, BACK_TEST_START_TIME, BACK_TEST_END_TIME)
     stockData.to_csv("./ta_data/"+stockNumber+"_calculated"+".csv", index=True)
     
     # row = len(taItems)
@@ -196,6 +166,23 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
 
     # plt.show()
 
+def tradeTrigger(stockNumber , originStockData, startTime, endTime):
+    #stragey 2 hit 1 >> buy
+    #stragey 2 hit 1 >> sell
+    tradeArr =[['Date','Action']]
+    startDate = datetime.strptime(startTime, '%Y-%m-%d')
+    endDate = datetime.strptime(endTime, '%Y-%m-%d')
+    for index, row in originStockData.iterrows():
+        checkDate = datetime.strptime(row['Date'], '%Y-%m-%d')
+        if(startDate <= checkDate <= endDate):
+            print("date", row['Date'])
+            # RSI Buy Stock Flag	RSI Sell Stock Flag	SMA Buy Stock Flag	SMA Sell Stock Flag
+            if((row['RSI Buy Stock Flag'] == 'True' or row['SMA Buy Stock Flag'] == 'True' )):
+                tradeArr.append([row['Date'],'BUY'])
+            elif((row['RSI Sell Stock Flag'] == 'True' or row['SMA Sell Stock Flag'] == 'True' )):
+                tradeArr.append([row['Date'],'SELL'])  
+    generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
+    # doBackTest(stockNumber)  
 
 def findBuySignal(stockData):
     # initial the array to store buy in signal date and price
