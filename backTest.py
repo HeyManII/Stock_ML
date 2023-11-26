@@ -1,5 +1,6 @@
 import pandas as pd
-import csv
+from datetime import datetime
+from utilFunction import generateCsv
 from constant import DEFAULT_STOCK_LIST
 INITIAL_FUND = 25000
 
@@ -35,27 +36,6 @@ def doBackTest(stockNumber):
                 numberOfHoldingStock = 0
                 resultArr.append([row["Date"], cashAmount, numberOfHoldingStock, closePrice, cashAmount+numberOfHoldingStock*closePrice])
     generateCsv("./back_test_data/" + stockNumber + "_back_test.csv",resultArr)
-
-
-def generateCsv(filePath, data):
-    with open(filePath, 'w', newline='') as file:
-        writer = csv.writer(file)
-        # Write each row of data to the csv file
-        for row in data:
-            writer.writerow(row)
-
-def tradeTrigger(stockNumber , originStockData):
-    #stragey 2 hit 1 >> buy
-    #stragey 2 hit 1 >> sell
-    tradeArr =[['Date','Action']]
-    for index, row in originStockData.iterrows():
-        # RSI Buy Stock Flag	RSI Sell Stock Flag	SMA Buy Stock Flag	SMA Sell Stock Flag
-        if((row['RSI Buy Stock Flag'] == 'True' or row['SMA Buy Stock Flag'] == 'True' )):
-            tradeArr.append([row['Date'],'BUY'])
-        elif((row['RSI Sell Stock Flag'] == 'True' or row['SMA Sell Stock Flag'] == 'True' )):
-            tradeArr.append([row['Date'],'SELL'])  
-    generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
-    # doBackTest(stockNumber)  
 
 def main():
     for stockNumber in DEFAULT_STOCK_LIST:
