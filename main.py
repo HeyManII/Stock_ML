@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 from utilFunction import generateCsv
 from backTest import doBackTest
-from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR
+from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR, DATA_START_TIME, DATA_END_TIME
 
 SHORT_SMA_DAY = 10
 LONG_SMA = 20
@@ -263,10 +263,8 @@ def trade(capital, buySignal, sellSignal):
     return cash, stockAmount
 
 def main():
-    startTime = "2015-01-01"
-    endTime = "2023-05-31"
     for stockNumber in DEFAULT_STOCK_LIST:
-        generateParticularStockDataWithDiagram(stockNumber, startTime, endTime)
+        generateParticularStockDataWithDiagram(stockNumber, DATA_START_TIME, DATA_END_TIME)
 
 
 
