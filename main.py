@@ -5,7 +5,7 @@ import math
 from datetime import datetime
 from utilFunction import generateCsv
 from backTest import doBackTest
-from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME
+from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR
 
 SHORT_SMA_DAY = 10
 LONG_SMA = 20
@@ -28,6 +28,10 @@ def calculateSmaInStockData(originStockData, day, referenceColumnName):
     )
     return newStockData
 
+def addStockNumberInColumn(originStockData, stockNumber):
+    newStockData = originStockData
+    newStockData["Stock Number"] = str(stockNumber)
+    return newStockData
 
 def createRsiInStockData(originStockData, day):
     newStockData = originStockData
@@ -109,6 +113,7 @@ def calculateSmaStrategy(originStockData, shorterSma, longerSma):
 def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     taItems = ["SMA", "RSI"]
     stockData = getStockData(stockNumber, startTime, endTime)
+    stockData = addStockNumberInColumn(stockData, stockNumber)
     stockData = calculateSmaInStockData(stockData, SHORT_SMA_DAY, "Close")
     stockData = calculateSmaInStockData(stockData, LONG_SMA, "Close")
     stockData = createRsiInStockData(stockData, RSI_DAY)
@@ -202,9 +207,11 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                 smaSellStockFlag = 'False'
 
             if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
-                tradeArr.append([row['Date'],'BUY'])
+                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')):
+                    tradeArr.append([row['Date'],'BUY'])
             elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
-                tradeArr.append([row['Date'],'SELL'])  
+                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
+                    tradeArr.append([row['Date'],'SELL'])  
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
     # doBackTest(stockNumber)  
 
@@ -255,12 +262,13 @@ def trade(capital, buySignal, sellSignal):
             # print(f"Cash left:{cash}")
     return cash, stockAmount
 
-
 def main():
     startTime = "2015-01-01"
     endTime = "2023-05-31"
     for stockNumber in DEFAULT_STOCK_LIST:
         generateParticularStockDataWithDiagram(stockNumber, startTime, endTime)
+
+
 
 
     # stock_700 = pd.read_csv("./0700_calculated.csv")
