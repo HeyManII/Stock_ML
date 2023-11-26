@@ -12,7 +12,7 @@ import yfinance as yf
 
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
-    filePath = "./ML" + stockNumber + ".csv"
+    filePath = "./source_data/ML" + stockNumber + ".csv"
     stockData = None
     if os.path.isfile(filePath):
         stockData = pd.read_csv(filePath)
@@ -146,7 +146,7 @@ def get_predicted_prices_test(
     y_pred = model.predict(X_test).reshape(
         -1,
     )
-    decision = pd.DataFrame({"id_test": id_test, "y_pred": y_pred.reshape(-1)})
+    decision = pd.DataFrame({"Date": id_test, "y_pred": y_pred.reshape(-1)})
 
     return predicted_next_prices, decision
 
@@ -408,12 +408,11 @@ if __name__ == "__main__":
         percent=percent,
     )
 
-    print(decision)
-
     decision1["Action"] = [
         "SELL" if pred < 0 else "BUY" for pred in decision1["y_pred"]
     ]
     decision1.drop(["y_pred"], axis=1, inplace=True)
-    print(decision1)
+    # print(decision1)
 
+    decision1 = decision1[decision1.index % 5 == 0]
     decision1.to_csv(f"{stockname}_MLtrade_decision.csv", index=False)
