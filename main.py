@@ -7,6 +7,7 @@ from utilFunction import generateCsv
 from backTest import doBackTest
 from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR, DATA_START_TIME, DATA_END_TIME
 
+MA_used = "SMA" # "EMA"or"SMA"
 SHORT_SMA_DAY = 10
 LONG_SMA = 20
 RSI_DAY = 14
@@ -17,9 +18,19 @@ INITIAL_AMOUNT_STOCK = 1
 
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
-    filePath = "./source_data/" + stockNumber + ".csv"
+    filePath = "./source_data/ML" + stockNumber + ".csv"
     stockData = pd.read_csv(filePath)
     return stockData
+
+def calculateEmaInStockData(originStockData, day, referenceColumnName):
+    newStockData = originStockData
+    newColumnName = "EMA"+str(day)
+    newStockData[newColumnName] = float('nan')
+    newStockData.loc[day-1,newColumnName] = newStockData.loc[0:day-1,referenceColumnName].mean()
+    for i in range(day, len(newStockData)):
+        newStockData.loc[i, newColumnName] = (newStockData.loc[i, referenceColumnName]*2/(1+day)+\
+            newStockData.loc[i-1, newColumnName]*(1-2/(1+day)))
+    return newStockData
 
 def calculateSmaInStockData(originStockData, day, referenceColumnName):
     newStockData = originStockData
@@ -51,6 +62,8 @@ def calculateRsiStrategy(originStockData):
     for index, row in originStockData.iterrows():
         buyFlag = False
         sellFlag = False
+        buyCounter = 0
+        sellCounter = 0
         if math.isnan(row["RSI"]):
             a = 1
         else:
@@ -58,22 +71,26 @@ def calculateRsiStrategy(originStockData):
             currentValue = row["RSI"]
             if(math.isnan(previousValue)):
                 if(currentValue<=RSI_BUY_INDEX):
-                    buyFlag= True
+                    buyCounter += 1
                 elif(currentValue >=RSI_SELL_INDEX):
-                    # sell stock
-                    sellFlag= True
+                    sellCounter += 1
             elif(currentValue >=RSI_SELL_INDEX):
                 if(previousValue >=RSI_SELL_INDEX):
-                    a=1
+                    sellCounter += 1
                 else:
-                    # sell stock
-                    sellFlag= True
+                    sellCounter = 0
             elif(currentValue <=RSI_BUY_INDEX):
                 if(previousValue <=RSI_BUY_INDEX):
-                    a=1
+                    buyCounter += 1
                 else:
-                    # buy stock
-                    buyFlag= True
+                    buyCounter = 0
+            # buy and sell if RSI reach buy/sell thresold in consecutive 5 days
+            if buyCounter >=5:
+                buyFlag = True
+                buyCounter = 0
+            if sellCounter >=5:
+                sellFlag = True
+                buyCounter = 0
         originStockData.loc[index,"RSI Buy Stock Flag"]= str(buyFlag)
         originStockData.loc[index,"RSI Sell Stock Flag"]= str(sellFlag)
     return originStockData
@@ -111,14 +128,19 @@ def calculateSmaStrategy(originStockData, shorterSma, longerSma):
 
 
 def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
-    taItems = ["SMA", "RSI"]
+    global MA_used
+    taItems = [MA_used, "RSI"]
     stockData = getStockData(stockNumber, startTime, endTime)
     stockData = addStockNumberInColumn(stockData, stockNumber)
-    stockData = calculateSmaInStockData(stockData, SHORT_SMA_DAY, "Close")
-    stockData = calculateSmaInStockData(stockData, LONG_SMA, "Close")
+    if MA_used == "SMA":
+        stockData = calculateSmaInStockData(stockData, SHORT_SMA_DAY, "Close")
+        stockData = calculateSmaInStockData(stockData, LONG_SMA, "Close")
+    elif MA_used == "EMA":
+        stockData = calculateEmaInStockData(stockData, SHORT_SMA_DAY, "Close")
+        stockData = calculateEmaInStockData(stockData, LONG_SMA, "Close")
     stockData = createRsiInStockData(stockData, RSI_DAY)
     stockData = calculateRsiStrategy(stockData)
-    stockData = calculateSmaStrategy(stockData,"SMA"+str(SHORT_SMA_DAY),"SMA"+str(LONG_SMA))
+    stockData = calculateSmaStrategy(stockData,MA_used+str(SHORT_SMA_DAY),MA_used+str(LONG_SMA))
     tradeTrigger(stockNumber,stockData, BACK_TEST_START_TIME, BACK_TEST_END_TIME)
     stockData.to_csv("./ta_data/"+stockNumber+"_calculated"+".csv", index=True)
     
@@ -210,8 +232,15 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                 if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')):
                     tradeArr.append([row['Date'],'BUY'])
             elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
-                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
+                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag ==
+                 'False')):
                     tradeArr.append([row['Date'],'SELL'])  
+    for i in range(len(tradeArr)):
+        if i>=2 and i<= len(tradeArr)-1:
+            if (datetime.strptime(tradeArr[i][0], '%Y-%m-%d') - datetime.strptime(tradeArr[i-1][0], '%Y-%m-%d')).days <=5:
+                if not tradeArr[i-1][1] == "CANCELLED":
+                    tradeArr[i-1][1] = "CANCELLED"
+                    tradeArr[i][1] = "CANCELLED"
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
     # doBackTest(stockNumber)  
 
