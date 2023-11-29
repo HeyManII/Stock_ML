@@ -8,6 +8,8 @@ from backTest import doBackTest
 from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR, DATA_START_TIME, DATA_END_TIME
 
 MA_used = "SMA" # "EMA"or"SMA"
+RSI_consecutive = 1 # trade when RSI reach thresold in consecutive n+1 days
+
 SHORT_SMA_DAY = 10
 LONG_SMA = 20
 RSI_DAY = 14
@@ -18,7 +20,7 @@ INITIAL_AMOUNT_STOCK = 1
 
 def getStockData(stockNumber, startTime, endTime):
     print("stock number ", stockNumber)
-    filePath = "./source_data/ML" + stockNumber + ".csv"
+    filePath = "./source_data/" + stockNumber + ".csv"
     stockData = pd.read_csv(filePath)
     return stockData
 
@@ -70,10 +72,13 @@ def calculateRsiStrategy(originStockData):
             previousValue = originStockData.loc[index - 1, "RSI"]
             currentValue = row["RSI"]
             if(math.isnan(previousValue)):
+                '''
                 if(currentValue<=RSI_BUY_INDEX):
                     buyCounter += 1
                 elif(currentValue >=RSI_SELL_INDEX):
                     sellCounter += 1
+                '''
+                pass
             elif(currentValue >=RSI_SELL_INDEX):
                 if(previousValue >=RSI_SELL_INDEX):
                     sellCounter += 1
@@ -84,11 +89,11 @@ def calculateRsiStrategy(originStockData):
                     buyCounter += 1
                 else:
                     buyCounter = 0
-            # buy and sell if RSI reach buy/sell thresold in consecutive 5 days
-            if buyCounter >=5:
+            # buy and sell if RSI reach buy/sell thresold in consecutive n days
+            if buyCounter >=RSI_consecutive:
                 buyFlag = True
                 buyCounter = 0
-            if sellCounter >=5:
+            if sellCounter >=RSI_consecutive:
                 sellFlag = True
                 buyCounter = 0
         originStockData.loc[index,"RSI Buy Stock Flag"]= str(buyFlag)
@@ -235,13 +240,23 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                 if((rsiBuyStockFlag == 'False' and smaBuyStockFlag ==
                  'False')):
                     tradeArr.append([row['Date'],'SELL'])  
-    for i in range(len(tradeArr)):
+
+    # Satisfy the weekly trade limitation                
+    for i,_ in enumerate(tradeArr):
         if i>=2 and i<= len(tradeArr)-1:
-            if (datetime.strptime(tradeArr[i][0], '%Y-%m-%d') - datetime.strptime(tradeArr[i-1][0], '%Y-%m-%d')).days <=5:
+            week_previous_action = datetime.strptime(tradeArr[i-1][0], '%Y-%m-%d').isocalendar()[1]
+            week_action = datetime.strptime(tradeArr[i][0], '%Y-%m-%d').isocalendar()[1]
+            if week_previous_action == week_action:
                 if not tradeArr[i-1][1] == "CANCELLED":
                     tradeArr[i-1][1] = "CANCELLED"
                     tradeArr[i][1] = "CANCELLED"
-    generateCsv('./action/'+stockNumber+"_trade_decision.csv",tradeArr)
+    
+    Corrected_tradeArr = []
+    for row in tradeArr:
+        if not row[1]== "CANCELLED":
+            Corrected_tradeArr.append(row)
+
+    generateCsv('./action/'+stockNumber+"_trade_decision.csv",Corrected_tradeArr)
     # doBackTest(stockNumber)  
 
 def findBuySignal(stockData):

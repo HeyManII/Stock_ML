@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from constant import DEFAULT_STOCK_LIST, DATA_START_TIME, DATA_END_TIME
 INTERVAL = '1wk'
-# INTERVAL = None
+#INTERVAL = None
 def getStockData(stockNumber, startTime, endTime, interval):
     print("stock number ", stockNumber)
     filePath = "./source_data/" + stockNumber + ".csv"
@@ -13,7 +13,8 @@ def getStockData(stockNumber, startTime, endTime, interval):
         stockData = pd.read_csv(filePath)
     else:
         # Download QQQ data from 2010 to 2022
-        stockData = yf.download(stockNumber+".HK", start=startTime, end=endTime, interval=interval)
+        #stockData = yf.download(stockNumber+".HK", start=startTime, end=endTime, interval=interval)
+        stockData = yf.download(stockNumber+".HK", start=startTime, end=endTime)
         stockData.reset_index(inplace=True)
         stockData.to_csv(filePath, index=False)
     return stockData
