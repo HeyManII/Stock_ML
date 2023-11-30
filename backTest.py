@@ -9,7 +9,7 @@ INITIAL_FUND = 25000
 START_DATE = "2022-11-01"
 END_DATE = "2023-10-31"
 
-model_used = "TA" # "TA" or "ML"
+model_used = "ML" # "TA" or "ML"
 short_SMA_day = 10
 long_SMA_day = 20
 
@@ -43,10 +43,11 @@ def doBackTest(stockNumber):
         if datetime.strptime(row["Date"], '%Y-%m-%d')>=datetime.strptime(START_DATE, '%Y-%m-%d') and\
             datetime.strptime(row["Date"], '%Y-%m-%d')<=datetime.strptime(END_DATE, '%Y-%m-%d'):
             closePrice = row["Close"]
-            TA_calculated = CalculatedStockData[CalculatedStockData["Date"] == row["Date"]]
-            RSIArr.append(TA_calculated["RSI"].item())
-            short_SMA_Arr.append(TA_calculated["SMA"+str(short_SMA_day)].item())
-            long_SMA_Arr.append(TA_calculated["SMA"+str(long_SMA_day)].item())
+            if model_used == "TA":
+                TA_calculated = CalculatedStockData[CalculatedStockData["Date"] == row["Date"]]
+                RSIArr.append(TA_calculated["RSI"].item())
+                short_SMA_Arr.append(TA_calculated["SMA"+str(short_SMA_day)].item())
+                long_SMA_Arr.append(TA_calculated["SMA"+str(long_SMA_day)].item())
             if targetStockAction["Date"].eq(row["Date"]).any():
                     trade_action = targetStockAction[targetStockAction["Date"] == row["Date"]]["Action"].item()
                     if trade_action == "BUY":
@@ -129,10 +130,12 @@ def doBackTest(stockNumber):
     graph_stock = []
     graph_total = []
     for i in range(len(resultArr)):
+        print(resultArr[i][0])
         if i>0:
             graph_date.append(resultArr[i][0])
             graph_stock.append(resultArr[i][3])
             graph_total.append(resultArr[i][4])
+    x_date =[graph_date[0]]+graph_date[60:-60:60]+[graph_date[-1]]
     graph_date = np.asarray(graph_date)
     graph_stock = np.asarray(graph_stock)
     graph_total = np.asarray(graph_total)
@@ -146,16 +149,18 @@ def doBackTest(stockNumber):
     SellSMA = np.asarray(SellSMA)
     BuySMA = np.asarray(BuySMA)
     
+    
     fig1,ax1 = plt.subplots()
 
     color = 'tab:orange'
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Today Close', color=color)
+
     ax1.plot(graph_date, graph_stock, color=color,zorder=1)
     ax1.scatter(BuyDate,BuyPrice, marker="^",zorder=2,color='0')
     ax1.scatter(SellDate,SellPrice, marker="v",zorder=2,color='0')
     ax1.tick_params(axis='y', labelcolor=color)
-    ax1.set(xticks=graph_date[::60])
+    ax1.set(xticks=x_date)
 
     ax2 = ax1.twinx()  
     color = 'tab:blue'
@@ -166,9 +171,9 @@ def doBackTest(stockNumber):
     fig1.tight_layout() 
     #plt.show()
     if model_used =="TA":
-        fig1.savefig("./back_test_data/" + stockNumber + "_back_test.png")
+        fig1.savefig("./figures/TA/" + stockNumber + "_back_test.png")
     elif model_used =="ML":
-        fig1.savefig("./back_test_data/ML" + stockNumber + "_back_test.png")
+        fig1.savefig("./figures/ML" + stockNumber + "_back_test.png")
     
     if model_used =="TA":
         fig2, (ax3, ax4) = plt.subplots(nrows=2, sharex=True)
@@ -180,7 +185,7 @@ def doBackTest(stockNumber):
         ax3.scatter(BuyDate,BuySMA, marker="^",zorder=2,color='0')
         ax3.scatter(SellDate,SellSMA, marker="v",zorder=2,color='0')
         ax3.tick_params(axis='y', labelcolor=color)
-        ax3.set(xticks=graph_date[::60])
+        ax3.set(xticks=x_date)
         ax3.legend()
 
         ax4.plot(graph_date, RSIArr, color="0",zorder=1)
@@ -195,7 +200,7 @@ def doBackTest(stockNumber):
             ax3.axvline(SellDate[i], color='tab:grey', linestyle=':')
             ax4.axvline(SellDate[i], color='tab:grey', linestyle=':')
         
-        fig2.savefig("./back_test_data/" + stockNumber + "_RSI SMA.png")
+        fig2.savefig("./figures/TA/" + stockNumber + "_RSI SMA.png")
 
         
 def main():

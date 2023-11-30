@@ -67,35 +67,39 @@ def calculateRsiStrategy(originStockData):
         buyCounter = 0
         sellCounter = 0
         if math.isnan(row["RSI"]):
-            a = 1
+            pass
         else:
             previousValue = originStockData.loc[index - 1, "RSI"]
             currentValue = row["RSI"]
-            if(math.isnan(previousValue)):
-                '''
+            if RSI_consecutive == 1:
                 if(currentValue<=RSI_BUY_INDEX):
-                    buyCounter += 1
+                    buyFlag = True
                 elif(currentValue >=RSI_SELL_INDEX):
-                    sellCounter += 1
-                '''
-                pass
-            elif(currentValue >=RSI_SELL_INDEX):
-                if(previousValue >=RSI_SELL_INDEX):
-                    sellCounter += 1
-                else:
-                    sellCounter = 0
-            elif(currentValue <=RSI_BUY_INDEX):
-                if(previousValue <=RSI_BUY_INDEX):
-                    buyCounter += 1
-                else:
+                    sellFlag = True
+            elif RSI_consecutive >1:
+                if(math.isnan(previousValue)):
+                    if(currentValue<=RSI_BUY_INDEX):
+                        buyCounter += 1
+                    elif(currentValue >=RSI_SELL_INDEX):
+                        sellCounter += 1
+
+                elif(currentValue >=RSI_SELL_INDEX):
+                    if(previousValue >=RSI_SELL_INDEX):
+                        sellCounter += 1
+                    else:
+                        sellCounter = 0
+                elif(currentValue <=RSI_BUY_INDEX):
+                    if(previousValue <=RSI_BUY_INDEX):
+                        buyCounter += 1
+                    else:
+                        buyCounter = 0
+                # buy and sell if RSI reach buy/sell thresold in consecutive n days
+                if buyCounter >=RSI_consecutive:
+                    buyFlag = True
                     buyCounter = 0
-            # buy and sell if RSI reach buy/sell thresold in consecutive n days
-            if buyCounter >=RSI_consecutive:
-                buyFlag = True
-                buyCounter = 0
-            if sellCounter >=RSI_consecutive:
-                sellFlag = True
-                buyCounter = 0
+                if sellCounter >=RSI_consecutive:
+                    sellFlag = True
+                    buyCounter = 0
         originStockData.loc[index,"RSI Buy Stock Flag"]= str(buyFlag)
         originStockData.loc[index,"RSI Sell Stock Flag"]= str(sellFlag)
     return originStockData
@@ -241,15 +245,29 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                  'False')):
                     tradeArr.append([row['Date'],'SELL'])  
 
-    # Satisfy the weekly trade limitation                
+    # Satisfy the weekly trade limitation   
+    week_action = tradeArr[1][1]     
+    previous_action_week = datetime.strptime(tradeArr[1][0], '%Y-%m-%d').isocalendar()[1]
+    days_diff_to_action = 0        
     for i,_ in enumerate(tradeArr):
-        if i>=2 and i<= len(tradeArr)-1:
-            week_previous_action = datetime.strptime(tradeArr[i-1][0], '%Y-%m-%d').isocalendar()[1]
-            week_action = datetime.strptime(tradeArr[i][0], '%Y-%m-%d').isocalendar()[1]
-            if week_previous_action == week_action:
-                if not tradeArr[i-1][1] == "CANCELLED":
-                    tradeArr[i-1][1] = "CANCELLED"
+        if i>=2:
+            current_action_week = datetime.strptime(tradeArr[i][0], '%Y-%m-%d').isocalendar()[1]
+            current_action = tradeArr[i][1]
+            if previous_action_week == current_action_week:
+                days_diff_to_action +=1
+                if week_action == "None":
+                    week_action = current_action
+                    days_diff_to_action = 0
+                elif current_action == week_action:
+                        tradeArr[i][1] = "CANCELLED"
+                else:
+                    tradeArr[i-days_diff_to_action][1] = "CANCELLED"
                     tradeArr[i][1] = "CANCELLED"
+                    week_action = "None"
+            else:
+                week_action = current_action
+                previous_action_week = current_action_week
+                days_diff_to_action = 0
     
     Corrected_tradeArr = []
     for row in tradeArr:
