@@ -4,12 +4,13 @@ from constant import DEFAULT_STOCK_LIST
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR, DATA_START_TIME, DATA_END_TIME
 
 INITIAL_FUND = 25000
-START_DATE = "2022-11-01"
-END_DATE = "2023-10-31"
+START_DATE = BACK_TEST_START_TIME
+END_DATE = BACK_TEST_END_TIME
 
-model_used = "ML" # "TA" or "ML"
+model_used = "TA" # "TA" or "ML"
 short_SMA_day = 10
 long_SMA_day = 20
 
@@ -124,6 +125,20 @@ def doBackTest(stockNumber):
         generateCsv("./back_test_data/" + stockNumber + "_back_test.csv", resultArr)
     elif model_used =="ML":
         generateCsv("./back_test_data/" + stockNumber + "_ML_back_test.csv", resultArr)
+    
+    concise_resultArr = []
+    concise_resultArr.append(resultArr[0])
+    concise_resultArr.append(resultArr[1])
+    for i,data in enumerate(resultArr):
+        if i >= 2 and i <len(resultArr)-2:
+            if not resultArr[i][2] == resultArr[i-1][2]:
+                concise_resultArr.append(resultArr[i])
+    concise_resultArr.append(resultArr[-1])
+    if model_used =="TA":
+        generateCsv("./back_test_data/concise_" + stockNumber + "_back_test.csv", concise_resultArr)
+    elif model_used =="ML":
+        generateCsv("./back_test_data/concise_" + stockNumber + "_ML_back_test.csv", concise_resultArr)
+
 
     # Plot graph
     graph_date = []
@@ -155,7 +170,7 @@ def doBackTest(stockNumber):
     color = 'tab:orange'
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Today Close', color=color)
-
+    ax1.set_title(stockNumber +" Close Price and Total Value")
     ax1.plot(graph_date, graph_stock, color=color,zorder=1)
     ax1.scatter(BuyDate,BuyPrice, marker="^",zorder=2,color='0')
     ax1.scatter(SellDate,SellPrice, marker="v",zorder=2,color='0')
@@ -180,6 +195,7 @@ def doBackTest(stockNumber):
         color = '0'
         ax3.set_xlabel('Date')
         ax3.set_ylabel('SMA', color=color)
+        ax3.set_title(stockNumber +" SMA and RSI")
         ax3.plot(graph_date, short_SMA_Arr, color='tab:blue',zorder=1,label='SMA'+str(short_SMA_day))
         ax3.plot(graph_date, long_SMA_Arr, color='tab:green',zorder=1,label='SMA'+str(long_SMA_day))
         ax3.scatter(BuyDate,BuySMA, marker="^",zorder=2,color='0')

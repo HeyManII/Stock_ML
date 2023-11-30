@@ -236,14 +236,22 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                 smaSellStockFlag = row['SMA Sell Stock Flag']
             except Exception as e:
                 smaSellStockFlag = 'False'
-
+            '''
             if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
                 if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')):
                     tradeArr.append([row['Date'],'BUY'])
             elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
-                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag ==
-                 'False')):
+                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
                     tradeArr.append([row['Date'],'SELL'])  
+            '''
+            if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
+                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')) and\
+                    row["RSI"]<70 and row[MA_used+str(SHORT_SMA_DAY)]>row[MA_used+str(LONG_SMA)]:
+                    tradeArr.append([row['Date'],'BUY'])
+            elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
+                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
+                    tradeArr.append([row['Date'],'SELL']) 
+            
 
     # Satisfy the weekly trade limitation   
     week_action = tradeArr[1][1]     
