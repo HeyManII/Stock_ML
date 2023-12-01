@@ -203,6 +203,7 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
     # plt.show()
 
 def tradeTrigger(stockNumber , originStockData, startTime, endTime):
+    global MA_used
     #stragey 2 hit 1 >> buy
     #stragey 2 hit 1 >> sell
     tradeArr =[['Date','Action']]
@@ -245,8 +246,8 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                     tradeArr.append([row['Date'],'SELL'])  
             '''
             if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
-                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')) and\
-                    row["RSI"]<70 and row[MA_used+str(SHORT_SMA_DAY)]>row[MA_used+str(LONG_SMA)]:
+                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False') and\
+                    row["RSI"]<70 and (row["SMA10"]>row["SMA20"])):
                     tradeArr.append([row['Date'],'BUY'])
             elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
                 if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
@@ -283,6 +284,7 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
             Corrected_tradeArr.append(row)
 
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",Corrected_tradeArr)
+
     # doBackTest(stockNumber)  
 
 def findBuySignal(stockData):

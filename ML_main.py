@@ -171,25 +171,25 @@ def plot_training_history(history):
 
 if __name__ == "__main__":
     # Get the stock data
-    stock0 = getStockData("2800", "2010-01-01", "2023-10-30")
-    stock1 = getStockData("0016", "2010-01-01", "2023-10-30")
-    stock2 = getStockData("0002", "2010-01-01", "2023-10-30")
-    stock3 = getStockData("0700", "2010-01-01", "2023-10-30")
-    stock4 = getStockData("0005", "2010-01-01", "2023-10-30")
+    stock0 = getStockData("2800", "2010-01-01", "2023-04-30")
+    stock1 = getStockData("0016", "2010-01-01", "2023-04-30")
+    stock2 = getStockData("0002", "2010-01-01", "2023-04-30")
+    stock3 = getStockData("0700", "2010-01-01", "2023-04-30")
+    stock4 = getStockData("0005", "2010-01-01", "2023-04-30")
 
-    train_stock0 = stock0[stock0["Date"] < "2022-11-01"]
-    train_stock1 = stock1[stock1["Date"] < "2022-11-01"]
-    train_stock2 = stock2[stock1["Date"] < "2022-11-01"]
-    train_stock3 = stock3[stock1["Date"] < "2022-11-01"]
-    train_stock4 = stock4[stock1["Date"] < "2022-11-01"]
+    train_stock0 = stock0[stock0["Date"] < "2022-05-01"]
+    train_stock1 = stock1[stock1["Date"] < "2022-05-01"]
+    train_stock2 = stock2[stock1["Date"] < "2022-05-01"]
+    train_stock3 = stock3[stock1["Date"] < "2022-05-01"]
+    train_stock4 = stock4[stock1["Date"] < "2022-05-01"]
 
-    test_stock0 = stock0[stock0["Date"] >= "2022-11-01"]
-    test_stock1 = stock1[stock1["Date"] >= "2022-11-01"]
-    test_stock2 = stock2[stock1["Date"] >= "2022-11-01"]
-    test_stock3 = stock3[stock1["Date"] >= "2022-11-01"]
-    test_stock4 = stock4[stock1["Date"] >= "2022-11-01"]
+    test_stock0 = stock0[stock0["Date"] >= "2022-05-01"]
+    test_stock1 = stock1[stock1["Date"] >= "2022-05-01"]
+    test_stock2 = stock2[stock1["Date"] >= "2022-05-01"]
+    test_stock3 = stock3[stock1["Date"] >= "2022-05-01"]
+    test_stock4 = stock4[stock1["Date"] >= "2022-05-01"]
 
-    stockname = "0005"
+    stockname = "0002"
 
     if stockname == "2800":
         train_stock = train_stock0
