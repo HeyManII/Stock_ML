@@ -10,7 +10,7 @@ INITIAL_FUND = 25000
 START_DATE = BACK_TEST_START_TIME
 END_DATE = DATA_END_TIME
 
-model_used = "ML" # "TA" or "ML"
+model_used = "TA" # "TA" or "ML"
 short_SMA_day = 10
 long_SMA_day = 20
 

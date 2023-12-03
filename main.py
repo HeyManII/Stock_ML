@@ -8,14 +8,15 @@ from backTest import doBackTest
 from constant import DEFAULT_STOCK_LIST, BACK_TEST_START_TIME, BACK_TEST_END_TIME, BACK_TEST_TIME_ARR, DATA_START_TIME, DATA_END_TIME
 
 MA_used = "SMA" # "EMA"or"SMA"
-RSI_consecutive = 1 # trade when RSI reach thresold in consecutive n+1 days
+RSI_consecutive = 1 # trade when RSI reach thresold in consecutive n days
+SMA_consecutive = 1 # trade when SMA reach thresold in consecutive n days
 
 SHORT_SMA_DAY = 10
 LONG_SMA = 20
 RSI_DAY = 14
 RSI_SELL_INDEX = 70
 RSI_BUY_INDEX = 30
-INITIAL_AMOUNT_STOCK = 1
+INITIAL_AMOUNT_STOCK = 0
 
 
 def getStockData(stockNumber, startTime, endTime):
@@ -60,7 +61,7 @@ def createRsiInStockData(originStockData, day):
 
 
 def calculateRsiStrategy(originStockData):
-    # row["Date"]
+    global RSI_consecutive
     for index, row in originStockData.iterrows():
         buyFlag = False
         sellFlag = False
@@ -106,30 +107,23 @@ def calculateRsiStrategy(originStockData):
 
 
 def calculateSmaStrategy(originStockData, shorterSma, longerSma):
-    # for index, row in enumerate(originStockData.iterrows()):
+    global SMA_consecutive
     for index, row in originStockData.iterrows():
         buyFlag = False
         sellFlag = False
         if math.isnan(row[longerSma]):
-            a = 1
+            pass
         else:
-            # shortMa > longMa >> buy
-            # longMa > shortMa >> sell
-            row[shorterSma]
-            row[longerSma]
-            previousShort = originStockData.loc[index - 1, shorterSma]
-            previousLong = originStockData.loc[index - 1, longerSma]
-            if (row[shorterSma] - row[longerSma]) > 0:
-                if (previousShort - previousLong) > 0:
-                    a = 1
-                else:
-                    #buy stock
+            if SMA_consecutive == 1:
+                # shortMa > longMa >> buy
+                # longMa > shortMa >> sell
+                #row[shorterSma]
+                #row[longerSma]
+                #previousShort = originStockData.loc[index - 1, shorterSma]
+                #previousLong = originStockData.loc[index - 1, longerSma]
+                if row[shorterSma] > row[longerSma]:
                     buyFlag = True 
-            elif((row[longerSma] - row[shorterSma]) >0):
-                if((previousLong - previousShort)>0):
-                    a=1
-                else:
-                    #sell stock
+                elif row[longerSma] > row[shorterSma]:
                     sellFlag = True
         originStockData.loc[index,"SMA Buy Stock Flag"]= str(buyFlag)
         originStockData.loc[index,"SMA Sell Stock Flag"]= str(sellFlag)
@@ -204,7 +198,7 @@ def generateParticularStockDataWithDiagram(stockNumber, startTime, endTime):
 
 def tradeTrigger(stockNumber , originStockData, startTime, endTime):
     global MA_used
-    #stragey 2 hit 1 >> buy
+    #stragey 2 hit 2 >> buy
     #stragey 2 hit 1 >> sell
     tradeArr =[['Date','Action']]
     startDate = datetime.strptime(startTime, '%Y-%m-%d')
@@ -237,24 +231,38 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
                 smaSellStockFlag = row['SMA Sell Stock Flag']
             except Exception as e:
                 smaSellStockFlag = 'False'
+
+            if (rsiSellStockFlag == 'True' or smaSellStockFlag == 'True'):
+                tradeArr.append([row['Date'],'SELL'])
+            elif (rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True'):
+                tradeArr.append([row['Date'],'BUY'])
             '''
             if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
-                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False')):
+                if(rsiSellStockFlag == 'False' and smaSellStockFlag == 'False'):
                     tradeArr.append([row['Date'],'BUY'])
             elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
-                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
-                    tradeArr.append([row['Date'],'SELL'])  
-            '''
-            if((rsiBuyStockFlag == 'True' or smaBuyStockFlag == 'True' )):
-                if((rsiSellStockFlag == 'False' and smaSellStockFlag == 'False') and\
-                    row["RSI"]<70 and (row["SMA10"]>row["SMA20"])):
-                    tradeArr.append([row['Date'],'BUY'])
-            elif((rsiSellStockFlag == 'True' or smaSellStockFlag == 'True' )):
-                if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
+                #if((rsiBuyStockFlag == 'False' and smaBuyStockFlag == 'False')):
                     tradeArr.append([row['Date'],'SELL']) 
+            '''
             
 
-    # Satisfy the weekly trade limitation   
+    # Satisfy the weekly trade limitation
+    WeeklyTradeArr = [['Date','Action']]
+    for i,_ in enumerate(tradeArr):
+        if i>=2:
+            previous_date,previous_action = tradeArr[i-1]
+            previous_date_week = datetime.strptime(previous_date, '%Y-%m-%d').isocalendar()[1]
+            current_date = tradeArr[i][0]
+            current_date_week = datetime.strptime(current_date, '%Y-%m-%d').isocalendar()[1]
+            if (previous_date_week != current_date_week) or (i == len(tradeArr)-1):
+                WeeklyTradeArr.append([previous_date,previous_action])
+    generateCsv('./action/'+stockNumber+"_trade_decision.csv",WeeklyTradeArr)        
+            
+
+
+
+    '''
+    # previous code for weekly trade limitation   
     week_action = tradeArr[1][1]     
     previous_action_week = datetime.strptime(tradeArr[1][0], '%Y-%m-%d').isocalendar()[1]
     days_diff_to_action = 0        
@@ -284,6 +292,7 @@ def tradeTrigger(stockNumber , originStockData, startTime, endTime):
             Corrected_tradeArr.append(row)
 
     generateCsv('./action/'+stockNumber+"_trade_decision.csv",Corrected_tradeArr)
+    '''
 
     # doBackTest(stockNumber)  
 
