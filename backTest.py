@@ -164,9 +164,17 @@ def doBackTest(stockNumber):
     SellSMA = np.asarray(SellSMA)
     BuySMA = np.asarray(BuySMA)
     
-    
-    fig1,ax1 = plt.subplots()
+    fig0,ax0 = plt.subplots()
+    color = 'tab:orange'
+    ax0.set_xlabel('Date')
+    ax0.set_ylabel('Today Close', color=color)
+    ax0.set_title(stockNumber +" Close Price")
+    ax0.plot(graph_date, graph_stock, color=color,zorder=1)
+    ax0.tick_params(axis='y', labelcolor=color)
+    ax0.set(xticks=x_date)
+    fig0.savefig(f"./figures/source/{stockNumber}_start_{START_DATE}.png")
 
+    fig1,ax1 = plt.subplots()
     color = 'tab:orange'
     ax1.set_xlabel('Date')
     ax1.set_ylabel('Today Close', color=color)
@@ -191,6 +199,7 @@ def doBackTest(stockNumber):
         fig1.savefig("./figures/ML" + stockNumber + "_back_test.png")
     
     if model_used =="TA":
+
         fig2, (ax3, ax4) = plt.subplots(nrows=2, sharex=True)
         color = '0'
         ax3.set_xlabel('Date')
@@ -217,6 +226,7 @@ def doBackTest(stockNumber):
             ax4.axvline(SellDate[i], color='tab:grey', linestyle=':')
         
         fig2.savefig("./figures/TA/" + stockNumber + "_RSI SMA.png")
+
 
         
 def main():
